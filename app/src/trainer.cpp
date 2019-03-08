@@ -51,10 +51,10 @@ int main(int argc, char *argv[]) {
 
   //   mlp->addLayer<Dense>(128, Activation::bent);
   //   mlp->addLayer<Dense>(64, Activation::isrlu);
-  //   mlp->addLayer<Dense>(64, Activation::isrlu);
+  //   mlp->addLayer<Dense>(64, Activation::relu;
   mlp->addLayer<Dense>(392, Activation::isrlu);
-  //   mlp->addLayer<Dense>(32, Activation::isrlu);
   mlp->addLayer<Dense>(10, Activation::tanh);
+  //   mlp->addLayer<Dense>(10, Activation::softplus);
 
   mlp->compile(1e-4, 0.4);
 

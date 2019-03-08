@@ -1,0 +1,38 @@
+Logfile network_7.log created
+Number of images:  10000
+Dimension of images:  784  ( 28 x 28 )
+Number of images:  60000
+Dimension of images:  784  ( 28 x 28 )
+Number of labels:  60000
+Number of labels:  10000
+Dense layer created with I/O dimensions 784 392, the activation function: ISRLU
+Dense layer created with I/O dimensions 392 10, the activation function: Tanh
+Setting up the network...
+Done.
+==================================================
+Start training network on 60000 samples.
+Number of trainable parameters: 311248
+Number of epochs: 5
+Batch size: 1 (in 60000 batch, the remainder: 0 )
+==================================================
+Epoch  1 / 5 :
+60000 / 60000 [ ================================================== ] 100 %
+Mean square error:  37641.1
+Epoch  2 / 5 :
+60000 / 60000 [ ================================================== ] 100 %
+Mean square error:  24762.4
+Epoch  3 / 5 :
+60000 / 60000 [ ================================================== ] 100 %
+Mean square error:  15123.2
+Epoch  4 / 5 :
+60000 / 60000 [ ================================================== ] 100 %
+Mean square error:  8059.13
+Epoch  5 / 5 :
+60000 / 60000 [ ================================================== ] 100 %
+Mean square error:  4256.69
+==================================================
+Start validating network on 10000 samples.
+==================================================
+10000 / 10000 [ ================================================== ] 100 %
+Validation result:  7949 / 10000 passed ( 79.49 % accuracy)
+Saving trained network to network_7 complete.
