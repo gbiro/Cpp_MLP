@@ -1,14 +1,15 @@
-# Cpp_MLP
-A multilayer perceptron in C++ to recognize handwritten numbers
+# Multi-layer perceptron in C++
 
-## Introduction
+My multilayer perceptron implementation in C++ to recognize handwritten numbers in the MNIST database.
+
+## Environment
 
 The code was developed and tested on Linux Mint 19.1, g++ version 7.3.0. Requirements:
 
 * C++ compiler with C++14 support
 * cmake
 
-### Options
+## Introduction
 
 The [MNIST database](http://yann.lecun.com/exdb/mnist/) is loaded into `float` vectors and can be preprocessed with the `Preprocessor` class. In the current version only a simple normalization with the maximum RGB value is applied.
 
@@ -82,7 +83,7 @@ The trained network is saved into `network_1` which can be loaded and re-tested 
 
 ## Example outputs
 
-Several examples (training logs and the trained networks as well) can be found in the `example_outputs` folder. The best achieved layout so far (after 5 epochs, `momentum=0.4`, `learning rate=1e-4`):
+Several examples (training logs and the trained networks as well) can be found in the `example_outputs` folder. The best result so far  is achieved with the following layout (after 5 epochs, `momentum=0.4`, `learning rate=1e-4`):
 
 1.  `mlp->addLayer<Dense>(192, 768, Activation::isrlu);`
 1.  `mlp->addLayer<Dense>(10, Activation::tanh);`
