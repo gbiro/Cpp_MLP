@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.xsl": "xml",
+        "chrono": "cpp"
+    }
+}

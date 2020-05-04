@@ -17,13 +17,20 @@ enum class Activation {
   bent,
   softplus,
   sinusoid,
-  isrlu
+  isrlu,
+  identity
 };
 
 class IActivationFunction {
 public:
   virtual float activation(const float &x) = 0;
   virtual float derivativeactivation(const float &x) = 0;
+};
+
+class Identity : public IActivationFunction {
+public:
+  float activation(const float &x);
+  float derivativeactivation(const float &x);
 };
 
 class Relu : public IActivationFunction {

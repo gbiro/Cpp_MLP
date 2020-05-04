@@ -50,15 +50,18 @@ int main(int argc, char *argv[]) {
     return 0;
 
   //   mlp->addLayer<Dense>(128, Activation::bent);
-  //   mlp->addLayer<Dense>(64, Activation::isrlu);
-  //   mlp->addLayer<Dense>(64, Activation::relu;
-  mlp->addLayer<Dense>(392, Activation::isrlu);
+  //   mlp->addLayer<Dense>(32, Activation::isrlu);
+  //   mlp->addLayer<Dense>(32, Activation::isrlu);
+  //   mlp->addLayer<Dense>(64, Activation::relu);
+  mlp->addLayer<Dense>(128, Activation::relu);
+  mlp->addLayer<Dropout>(0.5);
+  //   mlp->addLayer<Dense>(392, Activation::isrlu); // best
   mlp->addLayer<Dense>(10, Activation::tanh);
   //   mlp->addLayer<Dense>(10, Activation::softplus);
 
   mlp->compile(1e-4, 0.4);
 
-  mlp->trainNetwork(trainImages, trainLabels, 5);
+  mlp->trainNetwork(trainImages, trainLabels, 3);
 
   mlp->validateNetwork(testImages, testLabels);
 

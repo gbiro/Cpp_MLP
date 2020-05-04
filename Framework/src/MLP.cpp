@@ -68,8 +68,19 @@ void MLP::saveNetwork(string fileName) {
 
   saveFile.open(fileName);
 
-  saveFile << layers.size() << " " << momentum << " " << learningRate << endl;
+  int ndropouts = 0;
   for_each(layers.begin(), layers.end(), [&](auto &l) {
+    if (l->type == LayerType::dropout) {
+      ndropouts++;
+    }
+  });
+
+  saveFile << layers.size() - 1 << " " << momentum << " " << learningRate
+           << endl;
+  for_each(layers.begin(), layers.end(), [&](auto &l) {
+    if (l->type == LayerType::dropout) {
+      return;
+    }
     saveFile << "#LB" << endl;
     saveFile << int(l->type) << " " << int(l->atype) << " " << l->getInputN()
              << " " << l->getOutputN() << endl;
@@ -131,6 +142,8 @@ void MLP::loadNetwork(string fileName) {
 void MLP::trainNetwork(vector<vector<float>> &train_x, vector<float> &train_y,
                        int epochs, int batch_size) {
 
+  auto start_train = std::chrono::high_resolution_clock::now();
+
   int nParams =
       accumulate(layers.begin(), layers.end(), 0, [&](int param, auto &layer) {
         return param += layer->getParamNum();
@@ -139,7 +152,7 @@ void MLP::trainNetwork(vector<vector<float>> &train_x, vector<float> &train_y,
   int nBatch = train_x.size() / batch_size;
   int nBatch_rem = train_x.size() % batch_size;
 
-  int barWidth = 50;
+  int barWidth = 42;
   string eq;
   for (int i = 0; i < barWidth; ++i)
     eq += "=";
@@ -157,10 +170,14 @@ void MLP::trainNetwork(vector<vector<float>> &train_x, vector<float> &train_y,
     nBatch = 1;
     nBatch_rem = 0;
   }
+  cout << std::fixed;
 
   for (int iEpoch = 0; iEpoch < epochs; iEpoch++) {
 
+    auto start_epoch = std::chrono::high_resolution_clock::now();
+
     float epochError = 0.0;
+    float precision = 0.0;
 
     Msg("Epoch ", iEpoch + 1, "/", epochs, ":");
 
@@ -175,9 +192,11 @@ void MLP::trainNetwork(vector<vector<float>> &train_x, vector<float> &train_y,
 
       for (int iImage = iBatch * batch_size; iImage < limit; iImage++) {
 
+        float progress = 100 * float(iImage) / float(train_x.size());
+
         cout << iImage << " / " << train_x.size() << " [ ";
-        float progress = float(iImage) / float(train_x.size());
-        int pos = barWidth * progress;
+
+        int pos = barWidth * progress / 100;
 
         computeNetwork(train_x[iImage]);
 
@@ -187,9 +206,10 @@ void MLP::trainNetwork(vector<vector<float>> &train_x, vector<float> &train_y,
 
         for (int iNeuron = 0; iNeuron < (*layers.back())().size(); iNeuron++) {
 
-          error += pow(((int(target) == iNeuron) ? 1.0 : 0.0) -
-                           layers.back()->getNeuronVal(iNeuron),
-                       2);
+          float t_error = ((int(target) == iNeuron) ? 1.0 : 0.0) -
+                          layers.back()->getNeuronVal(iNeuron);
+
+          error += pow(t_error, 2);
 
           layers.back()->setNeuronDelta(iNeuron, int(target));
         }
@@ -218,7 +238,16 @@ void MLP::trainNetwork(vector<vector<float>> &train_x, vector<float> &train_y,
                                          *layers[iLayer - 1]);
         }
 
-        epochError += error / (float(layers.back()->getOutputN()) + 1);
+        epochError = error / (float(layers.back()->getOutputN()) + 1);
+
+        auto stop_epoch = std::chrono::high_resolution_clock::now();
+        auto elapsed_epoch = std::chrono::duration_cast<std::chrono::seconds>(
+                                 stop_epoch - start_epoch)
+                                 .count();
+        auto elapsed_epoch_ms =
+            std::chrono::duration_cast<std::chrono::milliseconds>(stop_epoch -
+                                                                  start_epoch)
+                .count();
 
         for (int i = 0; i < barWidth; ++i) {
           if (i < pos)
@@ -229,13 +258,40 @@ void MLP::trainNetwork(vector<vector<float>> &train_x, vector<float> &train_y,
             cout << "_";
         }
 
-        cout << " ] " << int(progress * 100.0) << " %\r";
+        cout << " ] " << int(progress) << " %  |  Error: ";
+
+        auto eta = 100 * elapsed_epoch / progress - elapsed_epoch;
+
+        if (elapsed_epoch_ms % 1000 == 0) {
+          cout << std::setprecision(4);
+          cout << epochError;
+          cout << std::setprecision(1);
+          cout << " , elapsed: " << elapsed_epoch << " s, eta: ";
+          cout << eta << " s     ";
+          cout << std::setprecision(4);
+        }
+
+        cout << "\r";
         cout.flush();
       }
-    };
-    Msg(train_x.size(), "/", train_x.size(), "[", eq, "] 100 %");
-    Msg("Mean square error: ", epochError);
+    }
+
+    auto stop_epoch = std::chrono::high_resolution_clock::now();
+    auto elapsed_epoch = std::chrono::duration_cast<std::chrono::seconds>(
+                             stop_epoch - start_epoch)
+                             .count();
+    Msg(train_x.size(), "/", train_x.size(), "[", eq,
+        "] 100 % |  Error: ", epochError, ", elapsed:", elapsed_epoch,
+        "s, eta: 0 s     ");
+
+    // Msg("Mean square error: ", epochError);
   }
+
+  auto stop_train = std::chrono::high_resolution_clock::now();
+  auto elapsed_train =
+      std::chrono::duration_cast<std::chrono::seconds>(stop_train - start_train)
+          .count();
+  Msg("Training complete in", elapsed_train, "s.");
 }
 
 bool MLP::computeNetwork(vector<float> &image, float label) {
@@ -262,7 +318,7 @@ void MLP::validateNetwork(vector<vector<float>> &test_x,
   int total = test_y.size();
   int passed = 0;
 
-  int barWidth = 50;
+  int barWidth = 42;
   string eq;
   for (int i = 0; i < barWidth; ++i)
     eq += "=";
@@ -270,6 +326,8 @@ void MLP::validateNetwork(vector<vector<float>> &test_x,
   Msg(eq);
   Msg("Start validating network on", test_x.size(), "samples.");
   Msg(eq);
+
+  auto start_testing = std::chrono::high_resolution_clock::now();
 
   for (int iImage = 0; iImage < test_x.size(); iImage++) {
 
@@ -293,8 +351,15 @@ void MLP::validateNetwork(vector<vector<float>> &test_x,
     cout << " ] " << int(progress * 100.0) << " %\r";
     cout.flush();
   }
+
+  auto stop_testing = std::chrono::high_resolution_clock::now();
+  auto elapsed_testing = std::chrono::duration_cast<std::chrono::seconds>(
+                             stop_testing - start_testing)
+                             .count();
+
   Msg(test_x.size(), "/", test_x.size(), "[", eq, "] 100 %");
 
   Msg("Validation result: ", passed, "/", total, "passed (",
-      float(passed) / float(total) * 100.0, "% accuracy)");
+      float(passed) / float(total) * 100.0, "% accuracy),", elapsed_testing,
+      "s elapsed");
 }

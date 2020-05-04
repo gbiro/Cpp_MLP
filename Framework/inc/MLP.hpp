@@ -4,7 +4,9 @@
 #include "Layers.hpp"
 #include "Reader.hpp"
 
+#include <chrono>
 #include <cmath>
+#include <iomanip>
 #include <memory>
 #include <vector>
 
@@ -35,6 +37,8 @@ public:
   void addLayer(int outputN, int inputN, Activation afuncType);
 
   template <class ltype> void addLayer(int outputN, Activation afuncType);
+
+  template <class ltype> void addLayer(float rate);
 
   bool readImages(string filename, vector<vector<float>> &vec);
   bool readLabels(string filename, vector<float> &vec);
@@ -86,6 +90,16 @@ template <class ltype> void MLP::addLayer(int outputN, Activation afuncType) {
   else if (dims.first != 0 && dims.second != 0)
     layers.push_back(make_unique<ltype>(outputN, dims.first * dims.second,
                                         afuncType, logFile));
+  else {
+    Msg("Error: creating", layers.size() + 1, ". layer: input dimensions");
+  }
+}
+
+template <class ltype> void MLP::addLayer(float rate) {
+
+  if (layers.size() != 0)
+    layers.push_back(make_unique<ltype>(rate, layers.back()->getOutputN(),
+                                        layers.back()->getOutputN(), logFile));
   else {
     Msg("Error: creating", layers.size() + 1, ". layer: input dimensions");
   }

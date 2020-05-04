@@ -1,5 +1,8 @@
 #include "ActivationFunctions.hpp"
 
+float Identity::activation(const float &x) { return x; }
+float Identity::derivativeactivation(const float &x) { return 1.0; }
+
 float Relu::activation(const float &x) { return max(float(0.0), x); }
 float Relu::derivativeactivation(const float &x) { return 0.0; }
 

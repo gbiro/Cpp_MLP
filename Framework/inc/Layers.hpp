@@ -17,7 +17,7 @@ using namespace std;
 
 typedef unique_ptr<IActivationFunction> pActFunc;
 
-enum class LayerType { dense };
+enum class LayerType { dense, dropout };
 
 class Layer {
 protected:
@@ -37,9 +37,12 @@ public:
   LayerType type;
   Activation atype;
 
+  uniform_real_distribution<float> dist{-0.5, 0.5};
   int getOutputN();
   int getInputN();
   void getWeights(ofstream &saveFile);
+
+  vector<vector<float>> &getWeights();
 
   void loadWeights(vector<vector<float>> iWeights);
 
@@ -67,7 +70,23 @@ class Dense : public Layer {
 
 public:
   Dense(int outputN, int inputN, Activation afuncType, ofstream &logFile);
-  uniform_real_distribution<float> dist{-0.5, 0.5};
+
+  void init();
+  void fillInput(vector<float> &input);
+  void calculateLayer(Layer &prevLayer);
+  void rescaleWeights(const float &momentum, const float &rate,
+                      Layer &prevLayer);
+  void setNeuronDelta(const int &index, const int &target);
+  void sumNeuronDelta(const int &index, const float &val);
+  void activateDelta(const int &index);
+  float getWeightedSumNeuronDelta(const int &index);
+};
+
+class Dropout : public Layer {
+
+public:
+  Dropout(float rateIn, int outputN, int inputN, ofstream &logFile);
+  float rate;
 
   void init();
   void fillInput(vector<float> &input);
